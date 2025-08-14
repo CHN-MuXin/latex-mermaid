@@ -107,7 +107,7 @@
 		\immediate\write18{mkdir "\mermaiddir" 2>nul}
 		\VerbatimOut{\mermaidsrc}}
 	{\endVerbatimOut
-		\immediate\write18{npx mmdc \mermaidoptV \mermaidoptt \mermaidoptw \mermaidoptH \mermaidopti \mermaidopto \mermaidoptb \mermaidoptc \mermaidoptC \mermaidoptp \mermaidopth >"\mermaidout" 2>"\mermaiderr"}
+		\immediate\write18{npx --package @mermaid-js/mermaid-cli mmdc \mermaidoptV \mermaidoptt \mermaidoptw \mermaidoptH \mermaidopti \mermaidopto \mermaidoptb \mermaidoptc \mermaidoptC \mermaidoptp \mermaidopth >"\mermaidout" 2>"\mermaiderr"}
 
 		% \ifdefequal can only compare macros against macros, not direct values
 		\def\mermaidoptpdf{pdf}

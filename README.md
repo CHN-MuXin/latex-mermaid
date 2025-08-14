@@ -3,7 +3,31 @@ LaTeX package to interface with mermaid (npm)
 
 Source : https://github.com/Kochise/latex-mermaid
 
+## Requirements
+
+*   A working **Node.js** installation with `npm`. The `@mermaid-js/mermaid-cli` tool, which this package depends on, is a Node.js application.
+*   **Shell escape enabled** during LaTeX compilation. This is required to allow LaTeX to run the `mmdc` command to generate diagrams.
+
+    ```shell
+    pdflatex -shell-escape your_document.tex
+    xelatex -shell-escape your_document.tex
+    ```
+
 ## installation
+
+The installation process involves two main steps: installing the `@mermaid-js/mermaid-cli` tool and then installing the LaTeX package file.
+
+### 1. Install `@mermaid-js/mermaid-cli`
+
+You need `npm` (which comes with Node.js) to install the command-line tool. It's recommended to install it globally.
+
+```shell
+npm install -g @mermaid-js/mermaid-cli
+```
+
+### 2. Install the LaTeX package
+
+#### For MiKTeX on Windows
 
 Get 'nvm' for Windows : https://github.com/coreybutler/nvm-windows/releases<br>
 Uncompress/install it where you need.<br>
@@ -14,9 +38,11 @@ Uncompress/install it where you need.<br>
 \nvm>nvm use 12.17.0
 \nvm>node -v
 v12.17.0
-\nvm>npm install @mermaid-js/mermaid-cli
+```
 
-xcopy /c /h /e /r /q /y latex-mermaid <miktex>\texmfs\install\tex\latex\mermaid
+Copy the package files:
+```batch
+xcopy /c /h /e /r /q /y . <miktex>\texmfs\install\tex\latex\mermaid
 start "" "<miktex>\miktex-portable.cmd"
 ```
 
@@ -25,6 +51,25 @@ Update the package database.<br>
 You should be ready to go.<br>
 
 Alternatively, you can use https://github.com/Kochise/win_portable
+
+#### For TeX Live (macOS, Linux, Windows)
+
+1.  Place the package files in your local `texmf` tree. You can find the root of this tree by running `kpsewhich -var-value TEXMFLOCAL`.
+2.  Copy the package sources into the `tex/latex/` subdirectory of your local `texmf` tree.
+
+    **On macOS / Linux:**
+    ```shell
+    # Example path, use the output of kpsewhich if different
+    sudo cp -r . /usr/local/texlive/texmf-local/tex/latex/mermaid
+    ```
+    **On Windows:**
+    You can use the File Explorer to copy the package folder into the directory given by `kpsewhich -var-value TEXMFLOCAL`, inside its `tex\latex\mermaid` subfolder.
+
+3.  Update the TeX Live file database.
+    ```shell
+    sudo texhash
+    ```
+    On Windows, run `texhash` from a command prompt with administrator rights.
 
 ## usage
 
