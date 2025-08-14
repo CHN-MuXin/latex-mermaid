@@ -7,6 +7,7 @@
 %% in directory macros/latex/base/lppl.txt.
 %
 \NeedsTeXFormat{LaTeX2e}
+\PassOptionsToPackage{patch}{kvoptions}
 \ProvidesPackage{mermaid}
 [2020/11/04 v8.8.2-beta.8 LaTeX package for Javascript based diagramming and charting tool]
 % Support for https://github.com/mermaid-js/mermaid-cli
@@ -18,9 +19,9 @@
 \RequirePackage{svg}
 \RequirePackage{etoolbox}
 \RequirePackage{xifthen}
-\RequirePackage[debugshow,patch]{kvoptions}
-%\RequirePackage[patch]{kvoptions}
-%\RequirePackage{kvoptions-patch}
+\RequirePackage{kvoptions}
+\PassOptionsToPackage{inkscape=false}{svg}
+
 
 %\newcommand*{\mermaidsetup}[1]{\setkeys{mermaid}{#1}}
 \newcommand*{\mermaidsetup}{\kvsetkeys{mermaid}}
@@ -107,15 +108,65 @@
 		\immediate\write18{mkdir "\mermaiddir" 2>nul}
 		\VerbatimOut{\mermaidsrc}}
 	{\endVerbatimOut
-		\immediate\write18{npx --package @mermaid-js/mermaid-cli mmdc \mermaidoptV \mermaidoptt \mermaidoptw \mermaidoptH \mermaidopti \mermaidopto \mermaidoptb \mermaidoptc \mermaidoptC \mermaidoptp \mermaidopth >"\mermaidout" 2>"\mermaiderr"}
+		\newif\ifmermaidneedscompiling
+		\mermaidneedscompilingtrue % Default: assume we need to compile.
+
+		% 1. Get the hash of the current source code using Node.js
+		\def\mermaidgetmdFiveNode{node -e "try{process.stdout.write(require('crypto').createHash('md5').update(require('fs').readFileSync(process.argv[1])).digest('hex'))}catch(e){}" "\mermaidsrc"}
+		\immediate\write18{\mermaidgetmdFiveNode > "\mermaidsrc.md5.tmp"}
+		\CatchFileDef{\mermaidnewhash}{\mermaidsrc.md5.tmp}{}
+
+		% 2. Check if compilation can be skipped
+		\ifx\mermaidnewhash\empty
+			% If hash generation failed for any reason, recompile to be safe.
+			\PackageInfo{mermaid}{Node.js hash generation failed for `\mermaidsrc'. Recompiling.}%
+		\else
+			\IfFileExists{\mermaiddst}{%
+				% If the PDF exists, we can consider skipping.
+				\IfFileExists{\mermaidsrc.md5}{%
+					% If the old hash file exists, compare hashes.
+					\CatchFileDef{\mermaidoldhash}{\mermaidsrc.md5}{}%
+					\ifx\mermaidoldhash\mermaidnewhash
+						% Hashes match and PDF exists. We can skip compilation.
+						\mermaidneedscompilingfalse
+					\fi
+				}{%
+					% PDF exists, but no old hash. Recompile to be safe and create hash.
+				}
+			}{%
+				% PDF does not exist. We must compile.
+			}
+		\fi
+
+		% 3. Execute compilation if needed
+		\ifmermaidneedscompiling
+			\PackageInfo{mermaid}{Compiling `\mermaidsrc'}%
+			% Run the mmdc command
+			\def\mermaidcmd{npx --package @mermaid-js/mermaid-cli mmdc \mermaidoptV \mermaidoptt \mermaidoptw \mermaidoptH \mermaidopti \mermaidopto \mermaidoptb \mermaidoptc \mermaidoptC \mermaidoptp \mermaidopth >"\mermaidout" 2>"\mermaiderr"}%
+			\immediate\write18{\mermaidcmd}%
+			% Crop the pdf version only (perl should be present)
+			\ifdefequal{\mermaidoptext}{\mermaidoptpdf}{
+				\immediate\write18{pdfcrop "\mermaiddst" "\mermaiddst" >>"\mermaidout" 2>>"\mermaiderr"}
+			}{}
+			% After successful compilation, update the permanent .md5 file
+			\ifwindows
+				\immediate\write18{move /Y "\mermaidsrc.md5.tmp" "\mermaidsrc.md5" > nul}
+			\else
+				\immediate\write18{mv "\mermaidsrc.md5.tmp" "\mermaidsrc.md5"}
+			\fi
+		\else
+			\PackageInfo{mermaid}{Skipping `\mermaidsrc' (content unchanged and target exists)}%
+			% Clean up the temporary hash file if we skipped compilation
+			\ifwindows
+				\immediate\write18{del "\mermaidsrc.md5.tmp" 2>nul}
+			\else
+				\immediate\write18{rm -f "\mermaidsrc.md5.tmp"}
+			\fi
+		\fi
 
 		% \ifdefequal can only compare macros against macros, not direct values
 		\def\mermaidoptpdf{pdf}
 
-		% Crop the pdf version only (perl should be present)
-		\ifdefequal{\mermaidoptext}{\mermaidoptpdf}{
-			\immediate\write18{pdfcrop "\mermaiddst" "\mermaiddst" >>"\mermaidout" 2>>"\mermaiderr"}
-		}{}
 		\begin{figure}[H]
 			\centering
 %			\vspace{-1em}
