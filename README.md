@@ -71,32 +71,62 @@ Alternatively, you can use https://github.com/Kochise/win_portable
     ```
     On Windows, run `texhash` from a command prompt with administrator rights.
 
-## usage
+## Usage
 
-See https://github.com/mermaid-js/mermaid-cli<br>
+1.  **Load the Package**
 
-In your preamble :
+    Load the package in your preamble. It's recommended to set an `imagepath` where the generated diagrams will be stored. This path will be created automatically.
 
-```latex
-\def\imagepath{./images}
-\graphicspath{{\imagepath/}}
-\usepackage[imagepath=\imagepath, theme={neutral}]{mermaid}
-```
+    ```latex
+    \documentclass{article}
+    \usepackage[imagepath=build]{mermaid}
+    ```
 
-In your document :
+2.  **Create a Diagram**
 
-```latex
-% https://mermaid-js.github.io/mermaid-live-editor
-%\begin{mermaid}[width]{caption}{refname}
-\begin{mermaid}[8cm]{mermaid caption example}{mermaidexample}
-graph TD
-  A[Christmas] -->|Get money| B(Go shopping)
-  B --> C{Let me think}
-  C -->|One| D[Laptop]
-  C -->|Two| E[iPhone]
-  C -->|Three| F[fa:fa-car Car]
-\end{mermaid}
-```
+    Use the `mermaid` environment to create your diagrams. The environment takes three arguments:
+    - `[width]` (optional): The width of the figure (e.g., `8cm`, `0.8\textwidth`). Defaults to `\columnwidth`.
+    - `{caption}`: The figure caption.
+    - `{label}`: A unique label for the diagram, which is also used as the base for filenames.
+
+    ```latex
+    \begin{mermaid}[0.8\textwidth]{A Simple Flowchart}{flowchart-example}
+    graph TD
+      A[Start] --> B{Is it working?};
+      B -->|Yes| C[Great!];
+      B -->|No| D[Go back];
+    \end{mermaid}
+    ```
+
+3.  **Customizing Options (Themes, etc.)**
+
+    You can pass any command-line options to the `mmdc` tool using the `\mermaidsetup` command. This is useful for setting themes, background colors, or other parameters. The setting persists until it is changed again.
+
+    ```latex
+    % Set a global theme for all subsequent diagrams
+    \mermaidsetup{-t neutral}
+
+    % You can change it anytime for specific diagrams
+    \mermaidsetup{-t dark -b '#333'}
+    \begin{mermaid}{A Dark Diagram}{dark-diagram}
+      graph TD
+        A --> B
+    \end{mermaid}
+    ```
+
+4.  **Compile Your Document**
+
+    You must compile your LaTeX document with the `-shell-escape` flag enabled to allow the package to run the `mmdc` compiler.
+
+    ```sh
+    pdflatex -shell-escape your_document.tex
+    ```
+    or
+    ```sh
+    xelatex -shell-escape your_document.tex
+    ```
+
+    The package features a caching system. Diagrams will only be recompiled if their source code changes, speeding up subsequent compilations.
 
 ## options
 
