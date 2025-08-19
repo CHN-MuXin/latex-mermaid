@@ -1,4 +1,4 @@
-% filepath: /Users/muxin/work/github/latex-mermaid/mermaid_new.sty
+% filepath: /Users/muxin/work/github/latex-mermaid/mermaid.sty
 % =================================================================
 %          A Minimalist Mermaid Package for LaTeX
 % =================================================================
@@ -22,7 +22,11 @@
 
 % 2. PACKAGE OPTIONS & SETUP COMMAND
 \DeclareStringOption[build]{imagepath} % Default output dir is 'build'
+\DeclareStringOption[]{latexoutputdir}
 \ProcessKeyvalOptions*
+
+
+\def\mermaidoutdir{\mermaid@latexoutputdir}
 
 \newcommand*{\mermaidsetup}[1]{\gdef\mermaid@cli@options{#1}}
 \mermaidsetup{}
@@ -38,8 +42,8 @@
     % --- Caching Logic ---
     \newif\ifmermaidneedscompiling
     \mermaidneedscompilingtrue
-    \def\mermaidgetmdFiveNode{node -e "try{process.stdout.write(require('crypto').createHash('md5').update(require('fs').readFileSync(process.argv[1])).digest('hex'))}catch(e){}" "\mermaidsrc"}
-    \immediate\write18{\mermaidgetmdFiveNode > "\mermaidsrc.md5.tmp"}
+    \def\mermaidgetmdFiveNode{node -e "try{process.stdout.write(require('crypto').createHash('md5').update(require('fs').readFileSync(process.argv[1])).digest('hex'))}catch(e){}" "\mermaidoutdir/\mermaidsrc"}
+    \immediate\write18{\mermaidgetmdFiveNode > "\mermaidoutdir/\mermaidsrc.md5.tmp"}
     \CatchFileDef{\mermaidnewhash}{\mermaidsrc.md5.tmp}{}
     \IfFileExists{\mermaiddst}{
       \IfFileExists{\mermaidsrc.md5}{
@@ -54,26 +58,26 @@
     % --- Compilation Step ---
     \ifmermaidneedscompiling
       \typeout{>>> MERMAID: Compiling `\mermaidsrc'}
-      \edef\mermaidcmd{npx --package @mermaid-js/mermaid-cli mmdc -i "\mermaidsrc" -o "\mermaiddst" -b transparent \mermaid@cli@options}
+      \edef\mermaidcmd{npx --package @mermaid-js/mermaid-cli mmdc -i "\mermaidoutdir/\mermaidsrc" -o "\mermaidoutdir/\mermaiddst" -b transparent \mermaid@cli@options}
       \immediate\write18{\mermaidcmd}
-      \immediate\write18{pdfcrop "\mermaiddst" "\mermaiddst"}
+      \immediate\write18{cd ./\mermaidoutdir/ && pdfcrop "\mermaiddst" "\mermaiddst"}
       \ifwindows
-        \immediate\write18{move /Y "\mermaidsrc.md5.tmp" "\mermaidsrc.md5" > nul}
+        \immediate\write18{move /Y "\mermaidoutdir/\mermaidsrc.md5.tmp" "\mermaidoutdir/\mermaidsrc.md5" > nul}
       \else
-        \immediate\write18{mv "\mermaidsrc.md5.tmp" "\mermaidsrc.md5"}
+        \immediate\write18{mv "\mermaidoutdir/\mermaidsrc.md5.tmp" "\mermaidoutdir/\mermaidsrc.md5"}
       \fi
     \else
       \ifwindows
-        \immediate\write18{del "\mermaidsrc.md5.tmp" 2>nul}
+        \immediate\write18{del "\mermaidoutdir/\mermaidsrc.md5.tmp" 2>nul}
       \else
-        \immediate\write18{rm -f "\mermaidsrc.md5.tmp"}
+        \immediate\write18{rm -f "\mermaidoutdir/\mermaidsrc.md5.tmp"}
       \fi
     \fi
 
     % --- Figure Insertion ---
     \begin{figure}[H]
       \centering
-      \includegraphics[width=\mermaid@width]{\mermaiddst}
+      \includegraphics[width=\mermaid@width]{\mermaidoutdir/\mermaiddst}
       \caption{\mermaid@caption}
       \label{fig:\mermaid@label}
     \end{figure}
@@ -93,7 +97,7 @@
     \gdef\mermaid@caption{#2}
     \gdef\mermaid@label{#3}
     % Create the output directory *before* starting the verbatim environment
-    \immediate\write18{mkdir -p "\mermaid@imagepath"}
+    \immediate\write18{mkdir -p "\mermaidoutdir/\mermaid@imagepath"}
     % Start the simple, internal environment
     \mermaid@internal
   }
