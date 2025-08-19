@@ -84,7 +84,7 @@ Alternatively, you can use https://github.com/Kochise/win_portable
 
 3.  **Using an Output Directory (Out-of-Tree Builds)**
 
-    If you compile your LaTeX document with an output directory (e.g., using the `-output-directory=build` flag), you **must** inform the `mermaid` package of this path. Use the `latexoutdir` option to specify the same path. This ensures that the package can correctly locate and process the generated diagram files.
+    If you compile your LaTeX document with an output directory (e.g., using the `-output-directory=build` flag), you **must** inform the `mermaid` package of this path. Use the `latexoutputdir` option to specify the same path. This ensures that the package can correctly locate and process the generated diagram files.
 
     ```latex
     % Command line compilation
@@ -94,7 +94,7 @@ Alternatively, you can use https://github.com/Kochise/win_portable
     ```latex
     % In your preamble
     \documentclass{article}
-    \usepackage[imagepath=images, latexoutdir=build]{mermaid}
+    \usepackage[imagepath=images, latexoutputdir=build]{mermaid}
     ```
 
     In this example, diagrams will be generated inside the `build/images` directory.
